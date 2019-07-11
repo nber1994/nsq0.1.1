@@ -1,4 +1,6 @@
 # nsq-v0.1.1README
+
+> 现在发行版功能大而全，不妨从最初的版本来学习nsq。英文翻译水平有限，欢迎各位参与到项目来一起学习。
 ### NSQ
 
 An infrastructure component designed to support highly available, distributed, fault tolerant, "guaranteed" message delivery.    
