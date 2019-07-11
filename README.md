@@ -7,10 +7,10 @@ An infrastructure component designed to support highly available, distributed, f
 #### Background
 
 `simplequeue` was developed as a dead-simple in-memory message queue. It spoke HTTP and had no knowledge (or care) for the data you put in or took out. Life was good.    
-simplequeue是一个十分简单的内存消息队列（不做持久化）。他基于HTTP并且对内部传递的消息无感知，简洁而美秒。    
+simplequeue是一个十分简单的内存消息队列（不做持久化）。他基于HTTP并且对内部传递的消息无感知，简洁而美妙。    
 
 We used `simplequeue` as the foundation for a distributed message queue. In production, we silo'd a `simplequeue` right where messages were produced (ie. frontends) and effectively reduced the potential for data loss in a system which did not persist messages (by guaranteeing that the loss of any single `simplequeue` would not prevent the rest of the message producers or workers, to function).    
-我们使用simplequeue来实现消息分发。simplequeue对接生产端，并且不对数据进行持久化来减少消息丢失的风险。    
+我们底层使用simplequeue来实现消息传递。simplequeue对接生产端，并且不对数据进行持久化, 以此来减少消息丢失的风险。    
 
 We added `pubsub`, an HTTP server to aggregate streams and provide a long-lived `/sub` endpoint. We leveraged `pubsub` to transmit streams across data-centers in order to daisy chain a given feed to various downstream services. A nice property of this setup is that producers are de-coupled from downstream consumers (a downstream consumer only needs to know of the `pubsub` to receive data).    
 pubsub方式。使用一个HTTP服务来聚合各个流并且对外提供一个长久有效地可订阅端。为了保证在总线型拓扑结构上将数据传递到多个下游服务，使用发布订阅模式在各个数据节点之间发送数据流。    
@@ -25,10 +25,10 @@ One is simply the operational complexity of having to setup the data pipe to beg
 ```
 
 Of particular note are the `pubsub` > `ps_to_http` links. We repeatedly encounter the problem of consuming a single stream with the desire to avoid a SPOF. You have 2 options, none ideal. Often we just put the `ps_to_http` process on a single box and pray. Alternatively we've chosen to consume the full stream multiple times but only process a % of the stream on a given host (essentially sharding). To make things even more complicated we need to repeat this chain for each stream of data we're interested in.    
-值得注意的一点是，从pubsub到ps_to_http的过程。在该关键过程中我们十分希望避免单点。另外我们通常消费所有流数据但是只处理其中一部分。同时我们在每个链路上都重复这一过程。    
+值得注意的是，从pubsub到ps_to_http的过程。在该关键过程中我们十分希望避免单点。另外我们通常消费所有流数据但是只处理其中一部分。同时我们在每个链路上都重复这一过程。    
 
 Messages traveling through the system have no guarantee that they will be delivered to a client and the responsibility of requeueing is placed on the client. This churn of messages being passed back and forth increases the potential for errors resulting in message loss.    
-消息的传递时不保证顺序性的，需要客户端自己做排序。这种传递方式也会导致错误发生。    
+消息的传递是不保证顺序性的，需要客户端自己做排序。这种传递方式也会导致错误发生。    
 
 #### Enter NSQ
 
@@ -39,10 +39,10 @@ A single `nsqd` process handles multiple "topics" (by convention, this would pre
 每一个nsqd进程会承载多个topic（也就是上文说的流），同时每个topic会有多个channels，实际上一个channel对应一个下游服务。每个channel都会传递该topic所有的消息，且不同的channel之间的数据是互相独立的以此来防止出现一个慢速消费者导致的消息堆积问题。一个channel可以有多个客户端连接，一条消息只能随机的被一个客户端成功消费。    
 
 For example, the "decodes" topic could have a channel for "clickatron", "spam", and "fishnet", etc. The benefit should be easy to see, there are no additional services needed to be setup for new queues or to daisy chain a new downstream service.    
-例如我们有docodes的topic，其中有多个channels。这样的好处是当有新的队列或者新增新的下游服务时，我们的服务不需要额外的增加。    
+例如我们有docodes的topic，其中有多个channels。这样的好处是当新增队列或者新增下游服务时，不需要额外的新部署一条链路。    
 
 `NSQ` is fully distributed with no single broker or point of failure. `nsqd` clients (aka "queuereaders") are connected over TCP sockets to **all** `nsqd` instances providing the specified topic. There are no middle-men, no brokers, and no SPOF. The *topology* solves the problems described above:    
-NSQ是分布式的来解决单点问题。nsqd client通过tcp与其他所有同一个topic的nsqd连接。这其中并没有中间件，也没有broker。这种拓扑结构可以解决上面说的问题，即SPOF。    
+NSQ采用分布式, 来解决单点问题。nsqd client通过tcp与某个topic下的所有的nsqd连接。这其中并没有中间件，也没有broker。这种拓扑结构可以解决上面说的问题，即SPOF。    
 ```
     NSQ     NSQ    NSQ
       \     /\     /
@@ -75,18 +75,18 @@ It accomplishes this by performing a handshake with the client, as follows:
   4. `NSQ` requeues on FAIL and purges on SUCCESS
 
 1. 客户端等待获取消息
-2. NSQ收到消息并且存储在临时内存中
-3. client恢复成功或者失败
-    * 超时未收到恢复，NSQ会重新将消息载入队列
+2. NSQ收到消息并且存储在进程内存中
+3. client回复消费成功或者失败
+    * 超时未收到回复，NSQ会重新将消息载入队列
 4. NSQ当收到成功消息则删除消息，失败消息则会将消息重新入队
 
 #### Lookup Service (nsqlookupd)
 
 `NSQ` includes a helper application, `nsqlookupd`, which provides a directory service where queuereaders can lookup the addresses of `NSQ` instances that contain the topics they are interested in subscribing to. This decouples the consumers from the producers (they both individually only need to have intimate knowledge of `nsqlookupd`, never each other).    
-NSQ还存在一个辅助应用nsqlookup，他可以提供一个目录给nsqd client来查找他们希望订阅的topic。以此来讲生产者和消费者进行了解耦。    
+NSQ还存在一个辅助应用nsqlookup，他可以提供一个目录给nsqd client来查找他们希望订阅的topic。以此来将生产者和消费者进行了解耦。    
 
 At a lower level each `nsqd` has a long-lived connection to `nsqlookupd` over which it periodically pushes it's state. This data is used to inform which addresses `nsqlookupd` will give to queuereaders. The heuristic could be based on depth, number of connected queuereaders or naive strategies like round-robin, etc. The goal is to ensure that all producers are being read from.  On the client side an HTTP interface is exposed for queuereaders to poll.    
-在下层，每个nsqd进程都会定期的向nsqlookup进程发送自己的状态。这些信息中可以用来决策nsqdloockup进程向nsqd client提供哪些地址，这个策略可以是基于深度，client的个数或者简单的循环等简单的策略。目的是为了确保所有的生产者都能被消费到。同时也会暴露给client一个http接口来选取地址。    
+在下层，每个nsqd进程都会定期的向nsqlookup进程发送自己的状态。这些信息中可以用来决策nsqdloockup进程向nsqd client提供哪些地址，这个决策策略可以是基于深度，client的个数或者只是简单的循环等。目的是为了确保所有的生产者都能被消费到。同时也会暴露给client一个http接口来选取地址。    
 
 High availability of `nsqlookupd` is achieved by running multiple instances. They don't communicate directly to each other and don't require strong data consistency between themselves. The data is considered *eventually* consistent, the queuereaders randomly choose a `nsqlookupd` to poll. Stale (or otherwise inaccessible) nodes don't grind the system to a halt.    
 多实例保证了nsqlookup进程的高可用。他们之间并不会直接进行通信，并且不要求强一致性。只要保证最终一致性，client随机的选取一个其中一个连接。过期节点和闭塞节点并不能导致系统的不可用。        
