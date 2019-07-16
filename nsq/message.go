@@ -22,7 +22,7 @@ type Message struct {
 	UtilChan  chan int
 }
 
-// NewMessage creates a Message, initializes some meta-data, 
+// NewMessage creates a Message, initializes some meta-data,
 // and returns a pointer
 func NewMessage(id []byte, body []byte) *Message {
 	return &Message{

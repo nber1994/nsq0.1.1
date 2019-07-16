@@ -1,10 +1,10 @@
 package main
 
 import (
-	"../nsq"
 	"bitly/notify"
 	"errors"
 	"log"
+	"nsq"
 	"sync"
 	"time"
 )
@@ -17,7 +17,7 @@ const (
 // Channel represents the concrete type for a NSQ channel (and also
 // implements the Queue interface)
 //
-// There can be many channels per topic and each with there own distinct 
+// There can be many channels per topic and each with there own distinct
 // clients subscribed.
 //
 // Channels maintain all client and message, orchestrating in-flight
@@ -200,7 +200,7 @@ func (c *Channel) getInFlightMessage(id []byte) (*nsq.Message, error) {
 	return msg, nil
 }
 
-// waitToAutoRequeue sleeps until forcefully closed (doing nothing) or 
+// waitToAutoRequeue sleeps until forcefully closed (doing nothing) or
 // times out (requeue the message automatically)
 func (c *Channel) waitToAutoRequeue(msg *nsq.Message) {
 	// TODO: we need cleanup for these goroutines

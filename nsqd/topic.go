@@ -1,18 +1,18 @@
 package main
 
 import (
-	"../nsq"
 	"bitly/notify"
 	"log"
+	"nsq"
 	"sync"
 )
 
 type Topic struct {
 	sync.RWMutex
 	name                string
-	channelMap          map[string]*Channel
-	backend             nsq.BackendQueue
-	incomingMessageChan chan *nsq.Message
+	channelMap          map[string]*Channel //channel的记录
+	backend             nsq.BackendQueue    //msg缓冲区
+	incomingMessageChan chan *nsq.Message   //接收消息channel
 	memoryMsgChan       chan *nsq.Message
 	messagePumpStarter  sync.Once
 	memQueueSize        int64
@@ -54,6 +54,7 @@ func (c *Topic) InFlight() map[string]*nsq.Message {
 // GetChannel performs a thread safe operation
 // to return a pointer to a Channel object (potentially new)
 // for the given Topic
+//获取channel,类似于获取topic
 func (t *Topic) GetChannel(channelName string) *Channel {
 	t.Lock()
 	defer t.Unlock()
@@ -64,6 +65,7 @@ func (t *Topic) GetChannel(channelName string) *Channel {
 		t.channelMap[channelName] = channel
 		log.Printf("TOPIC(%s): new channel(%s)", t.name, channel.name)
 	}
+	//互斥锁保证在多协程中只能运行一次
 	t.messagePumpStarter.Do(func() { go t.MessagePump() })
 
 	return channel
@@ -71,12 +73,13 @@ func (t *Topic) GetChannel(channelName string) *Channel {
 
 // PutMessage writes to the appropriate incoming
 // message channel
+//向topic投递消息
 func (t *Topic) PutMessage(msg *nsq.Message) {
 	// log.Printf("TOPIC(%s): PutMessage(%s, %s)", t.name, msg.Id, msg.Body)
 	t.incomingMessageChan <- msg
 }
 
-// MessagePump selects over the in-memory and backend queue and 
+// MessagePump selects over the in-memory and backend queue and
 // writes messages to every channel for this topic, synchronizing
 // with the channel router
 func (t *Topic) MessagePump() {
@@ -88,6 +91,7 @@ func (t *Topic) MessagePump() {
 		select {
 		case msg = <-t.memoryMsgChan:
 		case buf = <-t.backend.ReadChan():
+			//解析消息
 			msg, err = nsq.DecodeMessage(buf)
 			if err != nil {
 				log.Printf("ERROR: failed to decode message - %s", err.Error())
@@ -97,8 +101,10 @@ func (t *Topic) MessagePump() {
 			return
 		}
 
+		//试图加读锁,如果遇到写锁,则会阻塞等待写锁释放
 		t.RLock()
 		log.Printf("TOPIC(%s): channelMap %#v", t.name, t.channelMap)
+		//会将消息投递到所有的channel中
 		for _, channel := range t.channelMap {
 			// copy the message because each channel
 			// needs a unique instance
@@ -112,6 +118,7 @@ func (t *Topic) MessagePump() {
 
 // Router handles muxing of Topic messages including
 // proxying messages to memory or backend
+//router处理多个topic的消息,包括将消息代理到内存或者缓存区
 func (t *Topic) Router() {
 	var msg *nsq.Message
 
@@ -133,6 +140,7 @@ func (t *Topic) Router() {
 	}
 }
 
+//回收资源
 func (t *Topic) Close() error {
 	var err error
 

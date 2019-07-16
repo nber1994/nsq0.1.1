@@ -33,14 +33,14 @@ func (c *Consumer) Ready(count int) *ProtocolCommand {
 	return &ProtocolCommand{[]byte("RDY"), params}
 }
 
-// Finish creates a new ProtocolCommand to indiciate that 
+// Finish creates a new ProtocolCommand to indiciate that
 // a given message (by id) has been processed successfully
 func (c *Consumer) Finish(id []byte) *ProtocolCommand {
 	var params = [][]byte{id}
 	return &ProtocolCommand{[]byte("FIN"), params}
 }
 
-// Requeue creats a new ProtocolCommand to indicate that 
+// Requeue creats a new ProtocolCommand to indicate that
 // a given message (by id) should be requeued after the given timeout (in ms)
 // NOTE: a timeout of 0 indicates immediate requeue
 func (c *Consumer) Requeue(id []byte, timeoutMs int) *ProtocolCommand {
@@ -56,7 +56,7 @@ func (c *Consumer) StartClose() *ProtocolCommand {
 	return &ProtocolCommand{[]byte("CLS"), nil}
 }
 
-// UnpackResponse is a helper function that takes serialized data (as []byte), 
+// UnpackResponse is a helper function that takes serialized data (as []byte),
 // unpackes, (optionally) decodes, and returns a triplicate of:
 //    frame type, data (interface {}), error
 func (c *Consumer) UnpackResponse(response []byte) (int32, interface{}, error) {

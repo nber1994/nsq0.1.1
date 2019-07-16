@@ -10,7 +10,7 @@ type LookupPeer struct {
 	*ProtocolClient
 }
 
-// NewLookupPeer creates a new LookupPeer, initializes 
+// NewLookupPeer creates a new LookupPeer, initializes
 // the underlying ProtocolClient, and returns a pointer
 func NewLookupPeer(tcpAddr *net.TCPAddr) *LookupPeer {
 	return &LookupPeer{&ProtocolClient{tcpAddr: tcpAddr}}
@@ -24,7 +24,7 @@ func (c *LookupPeer) Announce(topic string, channel string, port int) *ProtocolC
 	return &ProtocolCommand{[]byte("ANNOUNCE"), params}
 }
 
-// Ping creates a new ProtocolCommand to keep-alive the state of all the 
+// Ping creates a new ProtocolCommand to keep-alive the state of all the
 // announced topic/channels for a given client
 func (c *LookupPeer) Ping() *ProtocolCommand {
 	return &ProtocolCommand{[]byte("PING"), make([][]byte, 0)}

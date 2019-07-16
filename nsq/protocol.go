@@ -45,7 +45,7 @@ func ProtocolExecute(p interface{}, client *ServerClient, params ...string) ([]b
 
 	cmd := strings.ToUpper(params[0])
 
-	// use reflection to call the appropriate method for this 
+	// use reflection to call the appropriate method for this
 	// command on the protocol object
 	if method, ok := typ.MethodByName(cmd); ok {
 		args[2] = reflect.ValueOf(params)

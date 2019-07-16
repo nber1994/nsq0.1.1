@@ -1,10 +1,10 @@
 package main
 
 import (
-	"../util"
 	"log"
 	"net"
 	"sync"
+	"util"
 )
 
 type NSQd struct {

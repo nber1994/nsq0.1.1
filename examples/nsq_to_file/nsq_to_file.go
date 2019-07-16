@@ -3,15 +3,15 @@
 package main
 
 import (
-	"../../nsq"
-	"../../util"
 	"flag"
 	"fmt"
 	"log"
 	"net"
+	"nsq"
 	"os"
 	"strings"
 	"time"
+	"util"
 )
 
 var (

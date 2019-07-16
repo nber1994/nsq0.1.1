@@ -1,7 +1,6 @@
 package main
 
 import (
-	"../util"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -9,6 +8,7 @@ import (
 	"net"
 	"net/http"
 	"strconv"
+	"util"
 )
 
 func HttpServer(listener net.Listener) {

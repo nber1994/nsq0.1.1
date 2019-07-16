@@ -1,10 +1,10 @@
 package main
 
 import (
-	"../nsq"
 	"bitly/notify"
 	"log"
 	"net"
+	"nsq"
 	"time"
 )
 

@@ -1,11 +1,11 @@
 package main
 
 import (
-	"../nsq"
 	"bufio"
 	"bytes"
 	"encoding/binary"
 	"log"
+	"nsq"
 	"strconv"
 	"strings"
 )

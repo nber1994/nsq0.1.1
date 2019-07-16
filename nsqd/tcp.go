@@ -1,9 +1,9 @@
 package main
 
 import (
-	"../nsq"
 	"log"
 	"net"
+	"nsq"
 )
 
 var Protocols = map[int32]nsq.Protocol{}

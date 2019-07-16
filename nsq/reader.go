@@ -21,8 +21,8 @@ type Handler interface {
 	HandleMessage(message *Message) error
 }
 
-// an async handler that must send a &FinishedMessage{messageID, requeueDelay, true|false} onto 
-// responseChannel to indicate that a message has been finished. This is usefull 
+// an async handler that must send a &FinishedMessage{messageID, requeueDelay, true|false} onto
+// responseChannel to indicate that a message has been finished. This is usefull
 // if you want to batch work together and delay response that processing is complete
 type AsyncHandler interface {
 	HandleMessage(message *Message, responseChannel chan *FinishedMessage)

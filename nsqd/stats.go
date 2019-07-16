@@ -1,11 +1,11 @@
 package main
 
 import (
-	"../util"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
+	"util"
 )
 
 // print out stats for each topic/channel

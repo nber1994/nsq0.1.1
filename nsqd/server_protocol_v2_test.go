@@ -1,11 +1,11 @@
 package main
 
 import (
-	"../nsq"
 	"github.com/bmizerany/assert"
 	"io/ioutil"
 	"log"
 	"net"
+	"nsq"
 	"os"
 	"strconv"
 	"testing"

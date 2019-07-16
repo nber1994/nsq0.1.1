@@ -1,13 +1,13 @@
 package main
 
 import (
-	"../nsq"
 	"bytes"
 	"encoding/binary"
 	"errors"
 	"fmt"
 	"io"
 	"log"
+	"nsq"
 	"os"
 	"path"
 	"sync"
@@ -132,7 +132,7 @@ func (d *DiskQueue) Empty() error {
 		fn := d.fileName(d.readFileNum)
 		err := os.Remove(fn)
 		if err != nil {
-			// only log this state because, although unexpected, 
+			// only log this state because, although unexpected,
 			// it's effectively the same as having removed the file
 			log.Printf("ERROR: failed to Remove(%s) - %s", fn, err.Error())
 		}

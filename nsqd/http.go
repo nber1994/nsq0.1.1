@@ -1,14 +1,14 @@
 package main
 
 import (
-	"../nsq"
-	"../util"
 	"bytes"
 	"io"
 	"log"
 	"net"
 	"net/http"
+	"nsq"
 	"strings"
+	"util"
 )
 
 import _ "net/http/pprof"
@@ -16,10 +16,15 @@ import _ "net/http/pprof"
 func HttpServer(listener net.Listener) {
 	log.Printf("HTTP: listening on %s", listener.Addr().String())
 	handler := http.NewServeMux()
+	//测试连通性
 	handler.HandleFunc("/ping", pingHandler)
+	//投递消息
 	handler.HandleFunc("/put", putHandler)
+	//批量投递消息
 	handler.HandleFunc("/mput", mputHandler)
+	//获取状态
 	handler.HandleFunc("/stats", statsHandler)
+	//情况topic
 	handler.HandleFunc("/empty", emptyHandler)
 	server := &http.Server{Handler: handler}
 	err := server.Serve(listener)
@@ -29,11 +34,13 @@ func HttpServer(listener net.Listener) {
 	}
 }
 
+//直接返回ok
 func pingHandler(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Content-Length", "2")
 	io.WriteString(w, "OK")
 }
 
+//向topic投递消息
 func putHandler(w http.ResponseWriter, req *http.Request) {
 	reqParams, err := util.NewReqParams(req)
 	if err != nil {
@@ -54,6 +61,7 @@ func putHandler(w http.ResponseWriter, req *http.Request) {
 	}
 
 	topic := nsqd.GetTopic(topicName)
+	//该处会向id生成器获取一个id来为message作为唯一标识
 	msg := nsq.NewMessage(<-nsqd.idChan, reqParams.Body)
 	topic.PutMessage(msg)
 
@@ -81,6 +89,7 @@ func mputHandler(w http.ResponseWriter, req *http.Request) {
 	}
 
 	topic := nsqd.GetTopic(topicName)
+	//只能批量向一个topic批量投递
 	for _, block := range bytes.Split(reqParams.Body, []byte("\n")) {
 		if len(block) != 0 {
 			msg := nsq.NewMessage(<-nsqd.idChan, block)
@@ -92,6 +101,7 @@ func mputHandler(w http.ResponseWriter, req *http.Request) {
 	io.WriteString(w, "OK")
 }
 
+//清空channel
 func emptyHandler(w http.ResponseWriter, req *http.Request) {
 	reqParams, err := util.NewReqParams(req)
 	if err != nil {
@@ -124,6 +134,7 @@ func emptyHandler(w http.ResponseWriter, req *http.Request) {
 
 	topic := nsqd.GetTopic(topicName)
 	channel := topic.GetChannel(channelName)
+	//清空channel
 	err = EmptyQueue(channel)
 	if err != nil {
 		w.Write(util.ApiResponse(500, "INTERNAL_ERROR", nil))

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"../util"
 	"flag"
 	"fmt"
 	"log"
@@ -10,6 +9,7 @@ import (
 	"os/signal"
 	"runtime"
 	"runtime/pprof"
+	"util"
 )
 
 const VERSION = "0.1"

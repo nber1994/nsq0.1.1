@@ -5,9 +5,11 @@ package main
 // and indirectly:
 // Twitter's `snowflake` https://github.com/twitter/snowflake
 
-// only minor cleanup and changes to introduce a type, combine the concept 
-// of workerId + datacenterId into a single identifier, and modify the 
+// only minor cleanup and changes to introduce a type, combine the concept
+// of workerId + datacenterId into a single identifier, and modify the
 // behavior when sequences rollover for our specific implementation needs
+
+//该包就是借用了其他包的算法，只是做了一些定制化的改动
 
 import (
 	"encoding/hex"

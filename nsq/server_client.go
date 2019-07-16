@@ -37,7 +37,7 @@ func (c *ServerClient) Read(data []byte) (int, error) {
 	return c.conn.Read(data)
 }
 
-// Write prefixes the byte array with a size and 
+// Write prefixes the byte array with a size and
 // proxies the write to `conn`
 func (c *ServerClient) Write(data []byte) (int, error) {
 	var err error
@@ -70,7 +70,7 @@ func (c *ServerClient) Handle(protocols map[int32]Protocol) {
 	defer c.Close()
 
 	// the client should initialize itself by sending a 4 byte sequence indicating
-	// the version of the protocol that it intends to communicate, this will allow us 
+	// the version of the protocol that it intends to communicate, this will allow us
 	// to gracefully upgrade the protocol away from text/line oriented to whatever...
 	err = binary.Read(c.conn, binary.BigEndian, &protocolVersion)
 	if err != nil {

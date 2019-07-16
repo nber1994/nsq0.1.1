@@ -1,8 +1,8 @@
 package main
 
 import (
-	"../nsq"
 	"log"
+	"nsq"
 )
 
 type Queue interface {

@@ -1,15 +1,15 @@
 package main
 
 import (
-	"../nsq"
-	"../util"
 	"bufio"
 	"bytes"
 	"encoding/binary"
 	"log"
 	"net"
+	"nsq"
 	"strconv"
 	"strings"
+	"util"
 )
 
 type ServerLookupProtocolV1 struct {
